@@ -81,9 +81,106 @@ int** combineMatrix(int half, int** C11, int** C12, int** C21, int** C22) {
     return C;
 }
 
+// Add n x n matrices
+int** addMatrices(int** A, int** B, int n) {
+    int** C = newMatrix(n);
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            C[i][j] = A[i][j] + B[i][j];
+        }
+    }
+    return C;
+}
+
+// Subtract n x n matrices
+int** subMatrices(int** A, int** B, int n) {
+    int** C = newMatrix(n);
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            C[i][j] = A[i][j] - B[i][j];
+        }
+    }
+    return C;
+}
+
 // ----------------------------
 // Method 1: Divide and Conquer
 // ----------------------------
+int** matrixMultDC(int** A, int** B, int n) {
+    // Corner case: 1 x 1 matrix
+    if (n == 1) {
+        int** C = newMatrix(1);
+        C[0][0] = A[0][0] * B[0][0];
+        return C;
+    }
+
+    bool padded = false;
+    int origSize = n;
+    // int** A_padded = A;
+    // int** B_padded = B;
+
+    // If n is odd, pad matrices with an extra row and column
+    if (n % 2 != 0) {
+        // int** A_padded = padMatrix(A, n, n);
+        // int** B_padded = padMatrix(B, n, n);
+        A = padMatrix(A, n, n+1);
+        B = padMatrix(B, n, n+1);
+        n += 1;
+        padded = true;
+    }
+
+    int halfSize = n/2;
+    int** A11 = newMatrix(halfSize);
+    int** A12 = newMatrix(halfSize);
+    int** A21 = newMatrix(halfSize);
+    int** A22 = newMatrix(halfSize);
+    partitionMatrix(A, halfSize, A11, A12, A21, A22);
+
+    int** B11 = newMatrix(halfSize);
+    int** B12 = newMatrix(halfSize);
+    int** B21 = newMatrix(halfSize);
+    int** B22 = newMatrix(halfSize);
+    partitionMatrix(B, halfSize, B11, B12, B21, B22);
+
+    // Compute submatrices of C
+    int** A11B11 = matrixMultiplyDC(A11, B11, halfSize);
+    int** A12B21 = matrixMultiplyDC(A12, B21, halfSize);
+    int** A11B12 = matrixMultiplyDC(A11, B12, halfSize);
+    int** A12B22 = matrixMultiplyDC(A12, B22, halfSize);
+    int** A21B11 = matrixMultiplyDC(A21, B11, halfSize);
+    int** A22B21 = matrixMultiplyDC(A22, B21, halfSize);
+    int** A21B12 = matrixMultiplyDC(A21, B12, halfSize);
+    int** A22B22 = matrixMultiplyDC(A22, B22, halfSize);
+    
+    int** C11 = addMatrices(A11B11, A12B21, halfSize);
+    int** C12 = addMatrices(A11B12, A12B22, halfSize);
+    int** C21 = addMatrices(A21B11, A22B21, halfSize);
+    int** C22 = addMatrices(A21B12, A22B22, halfSize);
+
+    // Combine submatrices into final result
+    int** C = combineMatrix(halfSize, C11, C12, C21, C22);
+
+    // Clear allocated memory of matrices used within the function
+    if padded {
+        freeMatrix(A, n);
+        freeMatrix(B, n);
+        int** truncC = truncateMatrix(C, n, origSize);
+        freeMatrix(C, n);
+        return truncC;
+    }
+    else {
+        clearMatrix(A11, n); clearMatrix(A12, n); clearMatrix(A21, n); clearMatrix(A22, n);
+        clearMatrix(B11, n); clearMatrix(B12, n); clearMatrix(B21, n); clearMatrix(B22, n);
+        clearMatrix(C11, n); clearMatrix(C12, n); clearMatrix(C21, n); clearMatrix(C22, n);
+        clearMatrix(A11B11, halfSize); clearMatrix(A12B21, halfSize);
+        clearMatrix(A11B12, halfSize); clearMatrix(A12B22, halfSize);
+        clearMatrix(A21B11, halfSize); clearMatrix(A22B21, halfSize);
+        clearMatrix(A21B12, halfSize); clearMatrix(A22B22, halfSize);
+    }
+
+    return C;
+}
+
 
 
 int main() {

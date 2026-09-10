@@ -1,9 +1,9 @@
 # Lab1
 
 ## Author Info
-James Ensminger
-USC ID: 5185535773
-ensminge@usc.edu
+James Ensminger <br>
+USC ID: 5185535773 <br>
+ensminge@usc.edu <br>
 
 ## Summary
 
