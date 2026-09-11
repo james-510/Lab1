@@ -5,6 +5,58 @@
 using namespace std;
 
 
+// -------------
+// I/O functions
+// -------------
+
+// Read and validate contents of input.txt file
+bool readInput(const string& filename, int& n, int**& A, int**& B) {
+    ifstream file(filename);
+    // Stop program if file can't be opened or doesn't exist
+    if (!file.is_open()) {
+        cerr << "Error: couldn't open \"" << filename << "\"" endl;
+        return false;
+    }
+
+    // Stop program if first value in input.txt is an invalid matrix size
+    file >> n;
+    if (file.fail() || n <= 0) {
+        cerr << "Error: invalid matrix size \"" << n << "\"" endl;
+        return false;
+    }
+
+    A = newMatrix(n);
+    B = newMatrix(n);
+
+    // Populate matrices A and B with values stored in input.txt
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            file >> A[i][j];
+        }
+    }
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            file >> B[i][j];
+        }
+    }
+
+    clearMatrix(A, n); clearMatrix(B, n);
+
+    file.close()
+    return true;
+}
+
+// Print out matrix
+void printMatrix(const string& matrixName, int** M, int n) {
+    cout << matrixName << " (" << n << " x " << n << " ):" endl;
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            cout << M[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
 // ----------------
 // Matrix functions
 // ----------------
@@ -308,7 +360,26 @@ int** matrixMultStrassen(int** A, int** B, int n) {
 
 
 int main() {
+    int n = 0
+    int** A = nullptr;
+    int** B = nullptr;
+
+    // Check for valid input.txt file
+    if (!readInput("input.txt", n, A, B)) {
+        return 1;
+    }
     
+    printMatrix("Matrix A", A, n);
+    cout << endl;
+    printMatrix("Matrix B", B, n);
+    cout << endl;
+
+    // Method 1: Divide and Conquer
+    int** C_dc = matrixMultDC(A, B, n);
+
+    // Method 2: Strassen's Method
+    int** C_strassen = matrixMultStrassen(A, B, n);
+
 
     return 0;
 }
