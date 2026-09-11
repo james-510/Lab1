@@ -1,72 +1,9 @@
 #include <time.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 
-
-// -------------
-// I/O functions
-// -------------
-
-// Read and validate contents of input.txt file
-bool readInput(const string& filename, int& n, int**& A, int**& B) {
-    ifstream file(filename);
-    // Stop program if file can't be opened or doesn't exist
-    if (!file.is_open()) {
-        cerr << "Error: couldn't open \"" << filename << "\"" endl;
-        return false;
-    }
-
-    // Stop program if first value in input.txt is an invalid matrix size
-    file >> n;
-    if (file.fail() || n <= 0) {
-        cerr << "Error: invalid matrix size \"" << n << "\"" endl;
-        return false;
-    }
-
-    A = newMatrix(n);
-    B = newMatrix(n);
-
-    // Populate matrices A and B with values stored in input.txt
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<n; j++) {
-            file >> A[i][j];
-        }
-    }
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<n; j++) {
-            file >> B[i][j];
-        }
-    }
-
-    clearMatrix(A, n); clearMatrix(B, n);
-
-    file.close()
-    return true;
-}
-
-// Print out matrix
-void printMatrix(const string& matrixName, int** M, int n) {
-    cout << matrixName << " (" << n << " x " << n << " ):" endl;
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<n; j++) {
-            cout << M[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
-
-// Create output.txt and output matrix computation to it
-void outputMatrix(const string& filename, int** M, int n) {
-    ofstream file(filename);
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<n; j++) {
-            file << M[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
 
 // ----------------
 // Matrix functions
@@ -76,9 +13,9 @@ void outputMatrix(const string& filename, int** M, int n) {
 int** newMatrix(int n) {
     int** M = new int*[n];
     for (int i=0; i<n; i++) {
-        M[i] = new int[i];
+        M[i] = new int[n];
         for (int j=0; j<n; j++) {
-            M[i][j] = new int[j];
+            M[i][j] = 0;
         }
     }
     return M;
@@ -133,7 +70,7 @@ void partitionMatrix(int** M, int half, int** M11, int** M12, int** M21, int** M
 
 // Combine the four n/2 x n/2 submatrices to produce the final matrix C
 int** combineMatrix(int half, int** C11, int** C12, int** C21, int** C22) {
-    int** C = newMatrix(half*2)
+    int** C = newMatrix(half*2);
     for (int i=0; i<half; i++) {
         for (int j=0; j<half; j++) {
             C[i][j] = C11[i][j];
@@ -165,6 +102,103 @@ int** subMatrices(int** A, int** B, int n) {
         }
     }
     return C;
+}
+
+
+// -------------
+// I/O functions
+// -------------
+
+// Read and validate contents of input.txt file
+bool readInput(const string& filename, int& n, int**& A, int**& B) {
+    ifstream file(filename);
+    // Stop program if file can't be opened or doesn't exist
+    if (!file.is_open()) {
+        cerr << "Error: couldn't open \"" << filename << "\"" << endl;
+        return false;
+    }
+
+    // Stop program if first value in input.txt is an invalid matrix size
+    file >> n;
+    if (file.fail() || n <= 0) {
+        cerr << "Error: invalid matrix size \"" << n << "\"" << endl;
+        return false;
+    }
+
+    A = newMatrix(n);
+    B = newMatrix(n);
+
+    // Populate matrices A and B with values stored in input.txt
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            file >> A[i][j];
+        }
+    }
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            file >> B[i][j];
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+// Print out matrix
+void printMatrix(const string& matrixName, int** M, int n) {
+    cout << matrixName << " (" << n << " x " << n << "):" << endl;
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            cout << M[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+// Create output.txt and output matrix computation to it
+void writeMatrix(const string& filename, int** M, int n) {
+    ofstream file(filename);
+    if (file.is_open()) {
+        for (int i=0; i<n; i++) {
+            for (int j=0; j<n; j++) {
+                file << M[i][j] << " ";
+            }
+            if (i==(n-1)) {
+                continue;
+            }
+            else {
+                file << endl;
+            }
+        }
+    }
+    else {
+        cerr << "Error: not able to write to output file \"" << filename << "\"" << endl;
+    }
+    file.close();
+}
+
+// Create output.txt and output runtime computation to it
+void writeTime(const string& filename, int time, bool append) {
+    if (!append) {
+        ofstream file(filename);
+        if (file.is_open()) {
+            file << time << endl;
+        }
+        else {
+            cerr << "Error: not able to write to output file \"" << filename << "\"" << endl;
+        }
+        file.close();
+    }
+    else {
+        ofstream file(filename, ios::app);
+        if (file.is_open()) {
+            file << time;
+        }
+        else {
+            cerr << "Error: not able to write to output file \"" << filename << "\"" << endl;
+        }
+        file.close();
+    }
 }
 
 
@@ -209,14 +243,14 @@ int** matrixMultDC(int** A, int** B, int n) {
     partitionMatrix(B, halfSize, B11, B12, B21, B22);
 
     // Compute submatrices of C
-    int** A11B11 = matrixMultiplyDC(A11, B11, halfSize);
-    int** A12B21 = matrixMultiplyDC(A12, B21, halfSize);
-    int** A11B12 = matrixMultiplyDC(A11, B12, halfSize);
-    int** A12B22 = matrixMultiplyDC(A12, B22, halfSize);
-    int** A21B11 = matrixMultiplyDC(A21, B11, halfSize);
-    int** A22B21 = matrixMultiplyDC(A22, B21, halfSize);
-    int** A21B12 = matrixMultiplyDC(A21, B12, halfSize);
-    int** A22B22 = matrixMultiplyDC(A22, B22, halfSize);
+    int** A11B11 = matrixMultDC(A11, B11, halfSize);
+    int** A12B21 = matrixMultDC(A12, B21, halfSize);
+    int** A11B12 = matrixMultDC(A11, B12, halfSize);
+    int** A12B22 = matrixMultDC(A12, B22, halfSize);
+    int** A21B11 = matrixMultDC(A21, B11, halfSize);
+    int** A22B21 = matrixMultDC(A22, B21, halfSize);
+    int** A21B12 = matrixMultDC(A21, B12, halfSize);
+    int** A22B22 = matrixMultDC(A22, B22, halfSize);
     
     int** C11 = addMatrices(A11B11, A12B21, halfSize);
     int** C12 = addMatrices(A11B12, A12B22, halfSize);
@@ -235,9 +269,9 @@ int** matrixMultDC(int** A, int** B, int n) {
         return truncC;
     }
     else {
-        clearMatrix(A11, n); clearMatrix(A12, n); clearMatrix(A21, n); clearMatrix(A22, n);
-        clearMatrix(B11, n); clearMatrix(B12, n); clearMatrix(B21, n); clearMatrix(B22, n);
-        clearMatrix(C11, n); clearMatrix(C12, n); clearMatrix(C21, n); clearMatrix(C22, n);
+        clearMatrix(A11, halfSize); clearMatrix(A12, halfSize); clearMatrix(A21, halfSize); clearMatrix(A22, halfSize);
+        clearMatrix(B11, halfSize); clearMatrix(B12, halfSize); clearMatrix(B21, halfSize); clearMatrix(B22, halfSize);
+        clearMatrix(C11, halfSize); clearMatrix(C12, halfSize); clearMatrix(C21, halfSize); clearMatrix(C22, halfSize);
         clearMatrix(A11B11, halfSize); clearMatrix(A12B21, halfSize);
         clearMatrix(A11B12, halfSize); clearMatrix(A12B22, halfSize);
         clearMatrix(A21B11, halfSize); clearMatrix(A22B21, halfSize);
@@ -330,9 +364,9 @@ int** matrixMultStrassen(int** A, int** B, int n) {
     clearMatrix(term2, halfSize);
 
     // C11 = M1 + M4 - M5 + M7
-    term1 = addMatrices(M1, M4, halfSize);
-    term2 = addMatrices(M5, M7, halfSize);
-    int** C11 = subMatrices(term1, term2, halfSize);
+    term1 = subMatrices(M4, M5, halfSize);
+    term2 = addMatrices(M1, M7, halfSize);
+    int** C11 = addMatrices(term1, term2, halfSize);
     clearMatrix(term1, halfSize);
     clearMatrix(term2, halfSize);
 
@@ -361,9 +395,9 @@ int** matrixMultStrassen(int** A, int** B, int n) {
         return truncC;
     }
     else {
-        clearMatrix(A11, n); clearMatrix(A12, n); clearMatrix(A21, n); clearMatrix(A22, n);
-        clearMatrix(B11, n); clearMatrix(B12, n); clearMatrix(B21, n); clearMatrix(B22, n);
-        clearMatrix(C11, n); clearMatrix(C12, n); clearMatrix(C21, n); clearMatrix(C22, n);
+        clearMatrix(A11, halfSize); clearMatrix(A12, halfSize); clearMatrix(A21, halfSize); clearMatrix(A22, halfSize);
+        clearMatrix(B11, halfSize); clearMatrix(B12, halfSize); clearMatrix(B21, halfSize); clearMatrix(B22, halfSize);
+        clearMatrix(C11, halfSize); clearMatrix(C12, halfSize); clearMatrix(C21, halfSize); clearMatrix(C22, halfSize);
     }
 
     return C;
@@ -371,29 +405,49 @@ int** matrixMultStrassen(int** A, int** B, int n) {
 
 
 int main() {
-    int n = 0
+    int n = 0;
     int** A = nullptr;
     int** B = nullptr;
+    bool isValidFile = readInput("input.txt", n, A, B);
+    time_t start, end;
+    int running_time;
+    bool append = false;
 
     // Check for valid input.txt file
-    if (!readInput("input.txt", n, A, B)) {
+    if (isValidFile) {
+        printMatrix("Matrix A", A, n);
+        cout << endl;
+        printMatrix("Matrix B", B, n);
+        cout << endl;
+
+        // Method 1: Divide and Conquer
+        start = clock();
+        int** C_dc = matrixMultDC(A, B, n);
+        end = clock();
+        running_time = end - start;
+        writeMatrix("output_m1.txt", C_dc, n);
+        writeTime("output_m3.txt", running_time, append);
+        append = true;
+        printMatrix("Divide & Conquer:", C_dc, n);
+        cout << running_time << endl;
+        cout << endl;
+
+        // Method 2: Strassen's Method
+        start = clock();
+        int** C_strassen = matrixMultStrassen(A, B, n);
+        end = clock();
+        running_time = end - start;
+        writeMatrix("output_m2.txt", C_strassen, n);
+        writeTime("output_m3.txt", running_time, append);
+        printMatrix("Strassen's Method:", C_strassen, n);
+        cout << running_time << endl;
+        cout << endl;
+
+        clearMatrix(A, n); clearMatrix(B, n); clearMatrix(C_dc, n); clearMatrix(C_strassen, n);
+
+        return 0;
+    }
+    else {
         return 1;
     }
-    
-    printMatrix("Matrix A", A, n);
-    cout << endl;
-    printMatrix("Matrix B", B, n);
-    cout << endl;
-
-    // Method 1: Divide and Conquer
-    int** C_dc = matrixMultDC(A, B, n);
-    outputMatrix("output_m1.txt", A, n);
-
-    // Method 2: Strassen's Method
-    int** C_strassen = matrixMultStrassen(A, B, n);
-    outputMatrix("output_m2.txt", B, n);
-
-
-
-    return 0;
 }
