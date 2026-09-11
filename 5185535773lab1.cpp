@@ -57,6 +57,17 @@ void printMatrix(const string& matrixName, int** M, int n) {
     }
 }
 
+// Create output.txt and output matrix computation to it
+void outputMatrix(const string& filename, int** M, int n) {
+    ofstream file(filename);
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            file << M[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
 // ----------------
 // Matrix functions
 // ----------------
@@ -376,9 +387,12 @@ int main() {
 
     // Method 1: Divide and Conquer
     int** C_dc = matrixMultDC(A, B, n);
+    outputMatrix("output_m1.txt", A, n);
 
     // Method 2: Strassen's Method
     int** C_strassen = matrixMultStrassen(A, B, n);
+    outputMatrix("output_m2.txt", B, n);
+
 
 
     return 0;
