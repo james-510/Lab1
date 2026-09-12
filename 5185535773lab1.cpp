@@ -1,8 +1,9 @@
-#include <time.h>
+#include <chrono>
 #include <iostream>
 #include <fstream>
 
 using namespace std;
+using namespace std::chrono;
 
 
 // ----------------
@@ -153,6 +154,7 @@ void printMatrix(const string& matrixName, int** M, int n) {
         }
         cout << endl;
     }
+    cout << endl;
 }
 
 // Create output.txt and output matrix computation to it
@@ -177,12 +179,13 @@ void writeMatrix(const string& filename, int** M, int n) {
     file.close();
 }
 
-// Create output.txt and output runtime computation to it
-void writeTime(const string& filename, int time, bool append) {
+// Create output.txt and output runtime (ms) computation as an int to it
+void writeTime(const string& filename, double time, bool append) {
+    int time_int = static_cast<int>(time);
     if (!append) {
         ofstream file(filename);
         if (file.is_open()) {
-            file << time << endl;
+            file << time_int << " ";
         }
         else {
             cerr << "Error: not able to write to output file \"" << filename << "\"" << endl;
@@ -192,7 +195,7 @@ void writeTime(const string& filename, int time, bool append) {
     else {
         ofstream file(filename, ios::app);
         if (file.is_open()) {
-            file << time;
+            file << time_int;
         }
         else {
             cerr << "Error: not able to write to output file \"" << filename << "\"" << endl;
@@ -409,39 +412,35 @@ int main() {
     int** A = nullptr;
     int** B = nullptr;
     bool isValidFile = readInput("input.txt", n, A, B);
-    time_t start, end;
-    int running_time;
-    bool append = false;
 
     // Check for valid input.txt file
     if (isValidFile) {
         printMatrix("Matrix A", A, n);
-        cout << endl;
         printMatrix("Matrix B", B, n);
-        cout << endl;
 
         // Method 1: Divide and Conquer
-        start = clock();
+        auto start = high_resolution_clock::now();
         int** C_dc = matrixMultDC(A, B, n);
-        end = clock();
-        running_time = end - start;
+        auto end = high_resolution_clock::now();
+        auto running_time = duration<double,milli>(end - start).count();
         writeMatrix("output_m1.txt", C_dc, n);
-        writeTime("output_m3.txt", running_time, append);
+        bool append = false;
+        writeTime("output_q3.txt", running_time, append);
         append = true;
         printMatrix("Divide & Conquer:", C_dc, n);
-        cout << running_time << endl;
-        cout << endl;
+        // cout << running_time << endl;
+        // cout << endl;
 
         // Method 2: Strassen's Method
-        start = clock();
+        start = high_resolution_clock::now();
         int** C_strassen = matrixMultStrassen(A, B, n);
-        end = clock();
-        running_time = end - start;
+        end = high_resolution_clock::now();
+        running_time = duration<double,milli>(end - start).count();
         writeMatrix("output_m2.txt", C_strassen, n);
-        writeTime("output_m3.txt", running_time, append);
+        writeTime("output_q3.txt", running_time, append);
         printMatrix("Strassen's Method:", C_strassen, n);
-        cout << running_time << endl;
-        cout << endl;
+        // cout << running_time << endl;
+        // cout << endl;
 
         clearMatrix(A, n); clearMatrix(B, n); clearMatrix(C_dc, n); clearMatrix(C_strassen, n);
 
