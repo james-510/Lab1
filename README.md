@@ -10,6 +10,6 @@ Divide & conquer and Strassen's method for matrix multiplication of two matrices
 (reference used: https://en.cppreference.com/cpp)
 
 ## Instructions to run program
-In your terminal, navigate to the directory where the script 5185535773Lab1.cpp is located and then run the following commands:
-`g++ -std=c++17 5185535773Lab1.cpp -o 5185535773Lab1`
-`./5185535773Lab1`
+In your terminal, navigate to the directory where the script 5185535773Lab1.cpp is located and then run the following commands: <br>
+`g++ -std=c++17 5185535773Lab1.cpp -o 5185535773Lab1` <br>
+`./5185535773Lab1` <br>
